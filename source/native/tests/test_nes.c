@@ -156,7 +156,9 @@ static void *log_listener(void *arg) {
     return 0;
 }
 /* Picker (sorted: Concentration Room, Nova the Squirrel, RHDE, Thwaite): down to Nova, A. Then Start twice
- * (title), hold right with A taps, open the menu (Xbox button), down to "Save state", A, B back to the game. */
+ * (title), hold right with A taps, open the menu (Xbox button), down to "Save state", A, B back to the game.
+ * Then the menu again, down to "Change buttons", A; A on the first console button (NES/GB A, PS1 Cross) and Y for
+ * it; B saves and goes back to the menu, B back to the game. */
 static void *pad_script(void *arg) {
     char m[96];
     xpad_state s;
@@ -176,6 +178,14 @@ static void *pad_script(void *arg) {
     TAP(XPAD_A, 150);
     mps_sleep_ms(500);
     TAP(XPAD_B, 150);
+    mps_sleep_ms(500);
+    TAP(XPAD_GUIDE, 150);
+    for (i = 0; i < NS_PAUSE_ITEMS - 1; ++i) TAP(XPAD_DOWN, 150);
+    TAP(XPAD_A, 150);   /* the "Change buttons" screen */
+    TAP(XPAD_A, 150);   /* its first console button: waiting for a press */
+    TAP(XPAD_Y, 150);   /* Y it is */
+    TAP(XPAD_B, 150);   /* done: saved, back to the menu */
+    TAP(XPAD_B, 150);   /* back to the game */
     return 0;
 }
 
@@ -265,6 +275,14 @@ int main(void) {
         printf("retro flash guard: a save state needs %llu MB to stay free after it\n", (unsigned long long)(NS_FLASH_RESERVE >> 20));
     }
     remove("build/state/Retro-data/last.txt");   /* the picker must start on the first game */
+    {   /* no button layouts from an earlier run */
+        DIR *d = opendir(NS_SAVE_DIR);
+        struct dirent *e;
+        char path[800];
+        while (d && (e = readdir(d)) != 0)
+            if (!strncmp(e->d_name, "controls-", 9)) { snprintf(path, sizeof path, "%s/%s", NS_SAVE_DIR, e->d_name); remove(path); }
+        if (d) closedir(d);
+    }
 #ifdef RETRO_CORE_PS1
     {   /* a two-second silent audio CD (cue + bin): the owner's BIOS shows its logo, then its CD player screen */
         FILE *f;
@@ -313,7 +331,7 @@ int main(void) {
         mps_sleep_ms(100);
     }
     pthread_create(&t, 0, pad_script, 0);
-    assert(ns_play(NS_SECONDS * 1000u) == 0);
+    assert(ns_play((NS_SECONDS + 8) * 1000u) == 0);   /* + 8 s for the Change buttons steps */
     pthread_join(t, 0);
     printf("nes: %u games listed, %u started, %u frames posted (%u with a real picture), most colours %u, %u pad messages, layer restored to %s\n",
            game_count, games_started, screen.frame, frames_with_detail, lit_max, pad_msgs, order_text);
@@ -339,6 +357,23 @@ int main(void) {
 #ifdef RETRO_CORE_PS1
     assert(ns_ps1_buffer_reports>100 && !ns_ps1_buffer_cb);
 #endif
+    {   /* "Change buttons" (pad_remap.h): the first console button is on Y now, saved for that game, and used */
+        unsigned slot = NS_RM_SYS.b[0].slot;
+        rm_map back;
+        assert(ns_map.active && ns_map.src[slot] == 14);
+        assert(rm_load(&NS_RM_SYS, save_dir, games[current], &back) && back.src[slot] == 14);
+#ifdef RETRO_CORE_PS1
+        assert(ns_ps1_profile == PS1_CUSTOM);
+        memset(&pad, 0, sizeof pad); ns_input_state(0, RETRO_DEVICE_JOYPAD, 0, slot);   /* the latch after the menu */
+#endif
+        memset(&pad, 0, sizeof pad); pad.buttons = XPAD_Y;
+        assert(ns_input_state(0, RETRO_DEVICE_JOYPAD, 0, slot) == 1);
+        pad.buttons = XPAD_A;
+        assert(ns_input_state(0, RETRO_DEVICE_JOYPAD, 0, slot) == 0);
+        memset(&pad, 0, sizeof pad);
+        printf("retro buttons: the menu's Change buttons put %s on Y, saved for this game, and the game sees it\n",
+               NS_RM_SYS.b[0].label);
+    }
     printf("nes: picker, game, save state, sound and pad all work; the layer came off.\n");
     return 0;
 }

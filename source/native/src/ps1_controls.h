@@ -1,9 +1,10 @@
 #ifndef PS1_CONTROLS_H
 #define PS1_CONTROLS_H
 #include "nes_input.h"
-enum { PS1_ORIGINAL, PS1_SHOOTER, PS1_ADVENTURE };
+enum { PS1_ORIGINAL, PS1_SHOOTER, PS1_ADVENTURE, PS1_CUSTOM };   /* PS1_CUSTOM: pad_remap.h, handled by the caller */
 static const char *ps1_control_name(unsigned profile) {
-    return profile == PS1_SHOOTER ? "Modern shooter" : profile == PS1_ADVENTURE ? "Modern adventure" : "Original PS1";
+    return profile == PS1_SHOOTER ? "Modern shooter" : profile == PS1_ADVENTURE ? "Modern adventure" :
+           profile == PS1_CUSTOM ? "Your own buttons" : "Original PS1";
 }
 static int ps1_tomb_title(const char *title) {
     const char *p;

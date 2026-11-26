@@ -25,6 +25,7 @@ typedef struct {
     const char *items[LC_MAX];      /* entries, top to bottom */
     unsigned count, cursor;
     const char *note;               /* a line shown under the list, or 0 */
+    const char *help;               /* the bottom line, or 0 for "A: play   B: leave" */
     uint32_t held;                  /* navigation bits held at the last look */
     uint64_t repeat_at;
 } lc_list;
@@ -72,7 +73,7 @@ static void lc_draw(const lc_list *l, uint32_t *px) {
         lc_text(px, 32, y, line, i == (int)l->cursor ? LC_WHITE : LC_GREY, 2);
     }
     if (l->note) lc_text(px, 24, kGameH - 72, l->note, LC_WHITE, 2);
-    lc_text(px, 24, kGameH - 40, "A: play   B: leave", LC_GREY, 2);
+    lc_text(px, 24, kGameH - 40, l->help ? l->help : "A: play   B: leave", LC_GREY, 2);
 }
 
 static uint32_t lc_nav(const xpad_state *s) {

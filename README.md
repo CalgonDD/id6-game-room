@@ -64,6 +64,15 @@ You don't have to take that on trust: [docs/SAFETY.md](docs/SAFETY.md) explains 
 | PSP | Left stick is the analog nub. **LB/LT** and **RB/RT** are L and R. |
 | Any game | **BACK** on the iDrive controller ends the game. |
 
+### Your own buttons
+
+NES, Game Boy, PS1 and PSP games can each have their own button layout, saved on the car for that game:
+
+- **NES, Game Boy, PS1:** press the **Xbox** button in the game and choose **Change buttons**.
+- **PSP:** in the game list, highlight the PSP game and press **Y**.
+
+Pick a console button, press **A**, then press the Xbox button you want for it. If that Xbox button was already in use, the two swap. **Reset to default** puts the usual layout back; **B** or **Done** saves and goes back. The d-pad and sticks always keep their usual jobs.
+
 ## How well it runs
 
 - **Freedoom, Tyrian, Quake, NES, Game Boy:** full speed.

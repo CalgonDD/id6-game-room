@@ -44,6 +44,7 @@
 #include "freedoom_screen.h"
 #include "freedoom_input.h"
 #include "launcher.h"
+#include "pad_remap_screen.h"   /* PSP games' own buttons (after launcher.h: it brings the font) */
 #ifdef __QNX__
 #include "gr_pad.c"
 #endif
@@ -356,6 +357,9 @@ static void fd_list_games(void) {
 #ifndef GR_QK_SAVES
 #define GR_QK_SAVES "/var/opt/hmi/data/ID5/LibreQuake-data"
 #endif
+#ifndef GR_PSP_SAVE
+#define GR_PSP_SAVE "/var/opt/hmi/data/ID5/PSP-data"   /* psp-qnx's save folder (psp_worker.c PSP_SAVE): layouts go there */
+#endif
 #ifndef GR_PSP_GAMES
 #define GR_PSP_GAMES "/mnt/data/ID6Games/PSP"
 #endif
@@ -566,7 +570,29 @@ static int fd_newest_of_all(int *slot) {
     return best;
 }
 
-/* The game list on our own screen. Returns the chosen game's index, or -2 for Continue. B leaves. */
+/* A PSP game's "Change buttons" screen (pad_remap_screen.h), until Done; then the layout is saved where
+ * psp-qnx reads it. Returns the line to show under the list. */
+static const char *fd_psp_buttons(int k, uint32_t *px) {
+    rm_map m;
+    rm_screen r;
+    int ok;
+    rm_load(&rm_psp, GR_PSP_SAVE, fd_games[k].wad, &m);
+    rm_open(&r, &rm_psp, &m, fd_games[k].wad, &fd_pad_now);
+    mps_log("game psp_buttons open layout=%s", m.active ? "own" : "default");
+    for (;;) {
+        fd_poll();
+        if (rm_step(&r, &fd_pad_now, mps_now_ms()) == RM_DONE) break;
+        if (r.dirty) { rm_draw(&r, px, kGameW, kGameH); fds_frame(&screen, px); r.dirty = 0; }
+        mps_sleep_ms(30);
+    }
+    ok = rm_save(&rm_psp, GR_PSP_SAVE, fd_games[k].wad, &r.map);
+    mps_log("game psp_buttons layout=%s saved=%d", r.map.active ? "own" : "default", ok);
+    return !ok ? "Could not save the buttons." : r.map.active ? "Buttons saved for that game." : "Default buttons.";
+}
+static int fd_is_psp(int k) { return k >= 0 && k < (int)fd_game_count && fd_games[k].engine == 'r' && fd_games[k].core == 's'; }
+
+/* The game list on our own screen. Returns the chosen game's index, or -2 for Continue. B leaves.
+ * Y on a PSP game: its buttons. */
 static int fd_launcher(int continue_game) {
     static uint32_t px[kGameW * kGameH];
     static char continue_line[96];
@@ -585,21 +611,41 @@ static int fd_launcher(int continue_game) {
         exit(7);
     }
     l.held = lc_nav(&fd_pad_now);
+    l.help = fd_is_psp((int)l.cursor - (int)base) ? "A: play   Y: buttons   B: leave" : 0;
     lc_draw(&l, px);
     fds_frame(&screen, px);
     mps_log("game launcher games=%u continue=%d", fd_game_count, continue_game >= 0 || continue_game == -3);
+    {
+    int y_held = (fd_pad_now.buttons & XPAD_Y) != 0;
     for (;;) {
         unsigned before = l.cursor;
         uint32_t act;
+        int y_now;
         fd_poll();
+        y_now = (fd_pad_now.buttons & XPAD_Y) != 0;
+        if (y_now && !y_held && fd_is_psp((int)l.cursor - (int)base)) {
+            l.note = fd_psp_buttons((int)l.cursor - (int)base, px);
+            l.held = lc_nav(&fd_pad_now);   /* the B or A that left that screen is not a press here */
+            y_held = (fd_pad_now.buttons & XPAD_Y) != 0;
+            lc_draw(&l, px);
+            fds_frame(&screen, px);
+            continue;
+        }
+        y_held = y_now;
         act = lc_step(&l, &fd_pad_now, mps_now_ms());
         if (act & LC_BACK) {
             mps_log("game stop reason=launcher_back");
             exit(0);
         }
         if (act & LC_OK) return base && l.cursor == 0 ? -2 : (int)(l.cursor - base);
-        if (l.cursor != before) { lc_draw(&l, px); fds_frame(&screen, px); }
+        if (l.cursor != before) {
+            l.note = 0;
+            l.help = fd_is_psp((int)l.cursor - (int)base) ? "A: play   Y: buttons   B: leave" : 0;
+            lc_draw(&l, px);
+            fds_frame(&screen, px);
+        }
         mps_sleep_ms(30);
+    }
     }
 }
 

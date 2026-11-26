@@ -14,6 +14,7 @@
 #include "gr_log.h"
 #include "car_audio.h"
 #include "nes_input.h"
+#include "pad_remap.h"   /* your own buttons per game, set in the Game Room list (Y) */
 #include "ps1_runtime.h" /* Reuse the tested queue only; no PS1 code/binary changes. */
 #include "psp_libretro.h"
 #include "psp_memory.h"
@@ -217,8 +218,11 @@ static void input_poll(void) {
     while((n=read(input_fd,&latest,sizeof latest))==(ssize_t)sizeof latest)input=latest;
     if(n==0)stopped=1;
 }
+static rm_map psp_map;   /* this game's own button layout; active = 0: the built-in one below */
 static uint16_t psp_buttons(const xpad_state *pad) {
-    uint16_t buttons=(uint16_t)(ns_retropad_ps1(pad)&0xfffu);
+    uint16_t buttons;
+    if(psp_map.active)return (uint16_t)(rm_buttons(&rm_psp,&psp_map,pad,ns_retropad_ps1(pad))&0xfffu);
+    buttons=(uint16_t)(ns_retropad_ps1(pad)&0xfffu);
     if(pad->lt>100)buttons|=1u<<RETRO_DEVICE_ID_JOYPAD_L;
     if(pad->rt>100)buttons|=1u<<RETRO_DEVICE_ID_JOYPAD_R;
     return buttons;
@@ -442,6 +446,7 @@ int main(int argc,char **argv) {
     if(argc!=3 || strcmp(argv[1],"--play-rom") || strncmp(argv[2],PSP_ROOT,strlen(PSP_ROOT)) ||
        strstr(argv[2],"/../") || strchr(argv[2],'\n'))return 2;
     if(!graphics_environment(argv))return 3;
+    rm_load(&rm_psp,PSP_SAVE,argv[2],&psp_map);mps_log("psp buttons layout=%s",psp_map.active?"own":"default");
     psp_driver_hints();
     available=free_memory();mps_log("psp memory_free_before=%llu",(unsigned long long)available);
     if(available<256u*1024u*1024u){mps_log("psp refused=memory_headroom");return 4;}

@@ -61,6 +61,7 @@
 #endif
 #include "libretro.h"
 #include "font8x8_basic.h"
+#include "pad_remap_screen.h"   /* your own buttons per game (after the font: it has no include guard) */
 
 #ifndef NS_PORT
 #define NS_PORT 42893
@@ -101,6 +102,15 @@ static int ctl = -1, cleaned = 0, game_loaded = 0;
 static uint64_t start_ms, last_parent_check;
 static unsigned pad_msgs, games_started;
 static xpad_state pad;
+#if defined(RETRO_CORE_PS1)
+#define NS_RM_SYS rm_ps1
+#elif defined(RETRO_CORE_GB)
+#define NS_RM_SYS rm_gb
+#else
+#define NS_RM_SYS rm_nes
+#endif
+static rm_map ns_map;          /* this game's own button layout (pad_remap.h); active = 0: the built-in one */
+static rm_screen ns_rm;        /* the "Change buttons" screen */
 #ifdef RETRO_CORE_PS1
 static ps1_audio_queue ps1_sound = PS1_AUDIO_INIT;
 static unsigned ns_ps1_profile = PS1_SHOOTER, ns_ps1_period = 16666667u;
@@ -171,6 +181,13 @@ static void ns_profile_path(char *path, unsigned size) {
     uint32_t h=2166136261u;
     while (*c) { h^=*c++; h*=16777619u; }
     snprintf(path,size,"%s/ps1-controls-%08x.cfg",save_dir,(unsigned)h);
+}
+static int ns_ps1_save_profile(void) {
+    char path[600]; FILE *f;
+    ns_profile_path(path,sizeof path);
+    f=fopen(path,"w"); if(!f) return 0;
+    fprintf(f,"%u\n",ns_ps1_profile);
+    return fclose(f)==0;
 }
 #endif
 
@@ -549,11 +566,12 @@ static int16_t ns_input_state(unsigned port, unsigned device, unsigned index, un
     }
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG) return ps1_control_axis(&pad,ns_ps1_profile,index,id);
     if ((device & RETRO_DEVICE_MASK) != RETRO_DEVICE_JOYPAD || id > 15) return 0;
+    if (ns_ps1_profile == PS1_CUSTOM) return (int16_t)((rm_buttons(&NS_RM_SYS,&ns_map,&pad,ns_retropad_ps1(&pad)) >> id) & 1u);
     return (int16_t)((ps1_control_buttons(&pad,ns_ps1_profile) >> id) & 1u);
 #else
     (void)index;
     if (device != RETRO_DEVICE_JOYPAD || id > 15) return 0;
-    return (int16_t)((ns_retropad(&pad) >> id) & 1u);
+    return (int16_t)(((ns_map.active ? rm_buttons(&NS_RM_SYS, &ns_map, &pad, ns_retropad(&pad)) : ns_retropad(&pad)) >> id) & 1u);
 #endif
 }
 
@@ -751,11 +769,11 @@ static void ns_draw_picker(unsigned cursor, const char *note) {
     fds_frame(&screen, frame);
 }
 
-static const char *const pause_items[] = {"Resume", "Save state", "Load state", "Reset game", "Choose another game"};
+static const char *const pause_items[] = {"Resume", "Save state", "Load state", "Reset game", "Choose another game", "Change buttons"};
 #ifdef RETRO_CORE_PS1
-#define NS_PAUSE_ITEMS 6
+#define NS_PAUSE_ITEMS 7   /* 5: the Controls layout, 6: Change buttons */
 #else
-#define NS_PAUSE_ITEMS 5
+#define NS_PAUSE_ITEMS 6
 #endif
 static void ns_draw_pause(unsigned cursor, const char *note) {
     unsigned i;
@@ -772,7 +790,7 @@ static void ns_draw_pause(unsigned cursor, const char *note) {
 #endif
         if (i == cursor) ns_bar(y - 8, 32, NS_SEL);
 #ifdef RETRO_CORE_PS1
-        ns_text(48,y,i==5?ps1_control_name(ns_ps1_profile):pause_items[i],i==cursor?NS_WHITE:NS_GREY,2);
+        ns_text(48,y,i==5?ps1_control_name(ns_ps1_profile):pause_items[i==6?5:i],i==cursor?NS_WHITE:NS_GREY,2);
 #else
         ns_text(48, y, pause_items[i], i == cursor ? NS_WHITE : NS_GREY, 2);
 #endif
@@ -782,6 +800,10 @@ static void ns_draw_pause(unsigned cursor, const char *note) {
         ns_text(24,320,"LS: move  RS: look  RT: fire",NS_GREY,2);
         ns_text(24,342,"A: jump B: crouch X: reload/use",NS_GREY,2);
         ns_text(24,364,"Y: weapon  LT: aim",NS_GREY,2);
+    } else if(ns_ps1_profile==PS1_CUSTOM) {
+        ns_text(24,320,"Your own buttons for this game.",NS_GREY,2);
+        ns_text(24,342,"Change buttons: edit them",NS_GREY,2);
+        ns_text(24,364,"Controls: the ready-made ones",NS_GREY,2);
     } else if(ns_ps1_profile==PS1_ADVENTURE) {
         ns_text(24,320,"A: jump X/RT: action/fire Y: draw",NS_GREY,2);
         ns_text(24,342,"B: roll LT/RS: look LB: walk",NS_GREY,2);
@@ -793,7 +815,7 @@ static void ns_draw_pause(unsigned cursor, const char *note) {
     }
     if(note) ns_text(24,406,note,NS_WHITE,2);
 #else
-    if (note) ns_text(48, 330, note, NS_WHITE, 2);
+    if (note) ns_text(48, 372, note, NS_WHITE, 2);
 #endif
     ns_text(24, 440, "A: choose   B: back to game", NS_GREY, 2);
     fds_frame(&screen, frame);
@@ -909,12 +931,15 @@ loaded:
 #endif
     game_loaded = 1;
     ns_sram(0);
+    rm_load(&NS_RM_SYS, save_dir, games[index], &ns_map);
+    mps_log("game buttons layout=%s", ns_map.active ? "own" : "default");
     retro_get_system_av_info(&av);
 #ifdef RETRO_CORE_PS1
     ns_update_av(&av);
     { char path[600]; unsigned saved; FILE *f;
       ns_ps1_profile=ps1_default_controls(games[index]); ns_profile_path(path,sizeof path);
-      f=fopen(path,"r"); if(f) { if(fscanf(f,"%u",&saved)==1 && saved<=PS1_ADVENTURE) ns_ps1_profile=saved; fclose(f); }
+      f=fopen(path,"r"); if(f) { if(fscanf(f,"%u",&saved)==1 && saved<=PS1_CUSTOM) ns_ps1_profile=saved; fclose(f); }
+      if(ns_ps1_profile==PS1_CUSTOM && !ns_map.active) ns_ps1_profile=ps1_default_controls(games[index]);
       mps_log("game controls profile=%s",ps1_control_name(ns_ps1_profile));
     }
     ns_ps1_muted_input=1;
@@ -960,7 +985,7 @@ static unsigned ns_last_index(void) {
 /* The picker, the game and the menu. max_ms > 0: the host test's limit. */
 static const char *ns_start_rom;   /* --play-rom: the game to start straight away */
 static void ns_loop(unsigned max_ms) {
-    enum { PICK, PLAY, PAUSE } mode = PICK;
+    enum { PICK, PLAY, PAUSE, REMAP } mode = PICK;
     unsigned cursor = ns_last_index(), pause_cursor = 0;
     const char *note = 0;
 #ifndef RETRO_CORE_PS1
@@ -1124,6 +1149,27 @@ static void ns_loop(unsigned max_ms) {
 #endif
             continue;
         }
+        if (mode == REMAP) {   /* "Change buttons": its own screen until Done, then saved and back to the menu */
+            if (rm_step(&ns_rm, &pad, mps_now_ms()) == RM_DONE) {
+                int ok;
+                ns_map = ns_rm.map;
+                ok = rm_save(&NS_RM_SYS, save_dir, games[current], &ns_map);
+#ifdef RETRO_CORE_PS1
+                if (ns_map.active) ns_ps1_profile = PS1_CUSTOM;
+                else if (ns_ps1_profile == PS1_CUSTOM) ns_ps1_profile = ps1_default_controls(games[current]);
+                if (!ns_ps1_save_profile()) ok = 0;
+#endif
+                note = !ok ? "Could not save the buttons." : ns_map.active ? "Buttons saved for this game." : "Default buttons.";
+                note_until = mps_now_ms() + 2500u;
+                mps_log("game buttons layout=%s saved=%d", ns_map.active ? "own" : "default", ok);
+                mode = PAUSE;
+                dirty = 1;
+                continue;
+            }
+            if (ns_rm.dirty) { rm_draw(&ns_rm, frame, kGameW, kGameH); fds_frame(&screen, frame); ns_rm.dirty = 0; }
+            mps_sleep_ms(30);
+            continue;
+        }
         /* PAUSE */
         if ((nav & NS_DOWN) && pause_cursor + 1 < NS_PAUSE_ITEMS) { ++pause_cursor; dirty = 1; }
         if ((nav & NS_UP) && pause_cursor > 0) { --pause_cursor; dirty = 1; }
@@ -1151,15 +1197,19 @@ static void ns_loop(unsigned max_ms) {
 #endif
                 continue;
 #ifdef RETRO_CORE_PS1
-            case 5: {
-                char path[600]; FILE *f;
-                ns_ps1_profile=(ns_ps1_profile+1u)%3u; ns_profile_path(path,sizeof path);
-                f=fopen(path,"w"); if(f) { fprintf(f,"%u\n",ns_ps1_profile); fclose(f); }
-                note=f?"Controls saved for this game.":"Controls changed; could not save.";
+            case 5: {   /* the ready-made layouts, and "Your own buttons" once there are some */
+                ns_ps1_profile=(ns_ps1_profile+1u)%(ns_map.active?4u:3u);
+                note=ns_ps1_save_profile()?"Controls saved for this game.":"Controls changed; could not save.";
                 ns_ps1_muted_input=1; mps_log("game controls profile=%s",ps1_control_name(ns_ps1_profile));
                 break;
             }
+            case 6:
+#else
+            case 5:
 #endif
+                rm_open(&ns_rm, &NS_RM_SYS, &ns_map, games[current], &pad);
+                mode = REMAP;
+                continue;
             case 4:
                 if (ns_in_game_room()) ns_exec_program("freedoom-qnx", "--play", 0);   /* back to the Game Room list */
                 ns_unload(); mode = PICK; cursor = current; dirty = 1; continue;

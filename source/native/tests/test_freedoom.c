@@ -4,6 +4,7 @@
  * game through the menus, and the layer comes off again at the end. About 9 s of game time. */
 #define FD_TEST 1
 #define GR_PSP_GAMES "build/state/games/PSP"
+#define GR_PSP_SAVE "build/state/PSP-data"
 #include "../src/freedoom_worker.c"
 #include <assert.h>
 #include <utime.h>
@@ -248,6 +249,14 @@ int main(int argc, char **argv) {
             assert(fd_game_count==9 && !strcmp(fd_games[8].title,"PSP: PSP title") && fd_games[8].core=='s');
             gr_args(8,&prog,&a1,&a2,&a3);
             assert(!strcmp(prog,"psp-qnx") && !strcmp(a1,"--play-rom") && strstr(a2,"PSP/yours/PSP title.pbp") && !a3);
+            /* Y on a PSP game in the list: its buttons, kept in psp-qnx's save folder under the very path it is
+             * started with, so psp-qnx finds them; other games have their own Change buttons in their menu */
+            assert(fd_is_psp(8) && !fd_is_psp(6) && !fd_is_psp(-1) && !fd_is_psp((int)fd_game_count));
+            { rm_map m, back;
+              rm_defaults(&rm_psp,&m); rm_assign(&rm_psp,&m,0,RM_RT);
+              assert(rm_save(&rm_psp,GR_PSP_SAVE,fd_games[8].wad,&m));
+              assert(rm_load(&rm_psp,GR_PSP_SAVE,a2,&back) && back.src[0]==RM_RT);
+              rm_defaults(&rm_psp,&m); assert(rm_save(&rm_psp,GR_PSP_SAVE,a2,&m) && !rm_load(&rm_psp,GR_PSP_SAVE,a2,&back)); }
             w=fopen("build/state/games/PSP/yours/PSP title.chd","wb");assert(w);fputs("CHD",w);fclose(w);
             fd_list_games();
             { unsigned j;int found=0;
