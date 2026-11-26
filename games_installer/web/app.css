@@ -1,0 +1,307 @@
+/* ID6 App Installer - theme tokens. Dark is the default; light uses soft,
+   muted surfaces (not stark white) per the redesign brief. */
+:root {
+  --font: "Segoe UI", -apple-system, sans-serif;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+body[data-theme="dark"] {
+  --bg: #15171c;
+  --bg-elevated: #1c1f26;
+  --card: #1f222a;
+  --card-border: #2a2e38;
+  --text: #e7e9ee;
+  --text-muted: #9aa1ae;
+  --text-faint: #6b7280;
+  --accent: #5b8cff;
+  --accent-text: #0b1020;
+  --danger: #e5584f;
+  --danger-text: #190403;
+  --input-bg: #15171c;
+  --input-border: #30343f;
+  --input-border-focus: #5b8cff;
+  --hover: #262a33;
+  --scrollbar: #343945;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+body[data-theme="light"] {
+  --bg: #eef0f3;
+  --bg-elevated: #e6e8ec;
+  --card: #f7f8fa;
+  --card-border: #dadde3;
+  --text: #22262e;
+  --text-muted: #5b6270;
+  --text-faint: #848b98;
+  --accent: #3864e0;
+  --accent-text: #ffffff;
+  --danger: #c7362c;
+  --danger-text: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #cdd2da;
+  --input-border-focus: #3864e0;
+  --hover: #e4e7ec;
+  --scrollbar: #c7cdd6;
+  --shadow: 0 6px 18px rgba(30, 35, 45, 0.12);
+}
+
+/* The hidden attribute must win over any class's own `display`, even
+   .modal-backdrop's display:flex and .field-grid's display:grid below -
+   otherwise an element with both just ignores being hidden. */
+[hidden] { display: none !important; }
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+}
+body { overflow-y: auto; }
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+.hint {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* ---- top menu bar ---- */
+.menubar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--card-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand { display: flex; flex-direction: column; margin-right: 18px; line-height: 1.1; }
+.brand-title { font-weight: 700; font-size: 13px; }
+.brand-sub { font-size: 10.5px; color: var(--text-faint); }
+.menu { position: relative; }
+.menu-btn {
+  background: none; border: none; color: var(--text);
+  padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12.5px;
+}
+.menu-btn:hover { background: var(--hover); }
+.menu-drop {
+  display: none;
+  position: absolute; left: 0; top: calc(100% + 4px);
+  min-width: 200px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 60;
+}
+.menu.open .menu-drop { display: block; }
+.menu-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; text-align: left;
+  background: none; border: none; color: var(--text);
+  padding: 7px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12.5px;
+}
+.menu-item:hover { background: var(--hover); }
+.menu-group { padding: 6px 8px 2px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint); }
+.menu-sep { height: 1px; background: var(--card-border); margin: 6px 2px; }
+.menu-item .dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--text-faint); flex: none; }
+.menu-item.selected .dot { background: var(--accent); border-color: var(--accent); }
+
+/* ---- layout grid ---- */
+.layout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(300px, 1fr));
+  gap: 14px;
+  padding: 14px;
+  align-items: start;
+}
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: repeat(2, minmax(300px, 1fr)); }
+  .col-stack { grid-column: span 2; flex-direction: row; align-items: flex-start; }
+  .col-stack > .card { flex: 1; }
+}
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; }
+  .col-stack { grid-column: span 1; flex-direction: column; }
+}
+.col-stack { display: flex; flex-direction: column; gap: 14px; }
+.own-list { max-height: 220px; overflow-y: auto; }
+.own-row { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; }
+.own-row input { margin-top: 2px; accent-color: var(--accent); }
+.own-row .own-file { color: var(--text-muted); font-size: 11.5px; word-break: break-all; }
+.own-row.own-bad { opacity: .75; }
+.own-row .own-problem { color: var(--danger, #e5534b); }
+.own-row .own-note { color: var(--text-muted); }
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.card-status { grid-column: 1 / -1; }
+
+/* ---- one page on a maximised 1920x1080 window (owner, 2026-11-19) ----
+   Wide windows get four columns and no page scroll:
+     Connect   | Install | Uninstall | Diagnostics
+     Status    | Install | Uninstall | Your games
+   The status card takes whatever height is left in column 1 and scrolls inside itself.
+   Lists that grew (screen sizes, apps) go two-up. Narrower windows keep the old 3/2/1-column layout. */
+@media (min-width: 1360px) and (min-height: 700px) {
+  html, body { overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+  .layout {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(300px, 1fr) minmax(340px, 1.15fr) minmax(300px, 0.95fr) minmax(320px, 1.05fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "connect install uninstall diag"
+      "status  install uninstall yours";
+    align-items: stretch;
+    padding: 12px;
+    gap: 12px;
+  }
+  .col-stack { display: contents; }
+  #card-connect { grid-area: connect; }
+  #card-install { grid-area: install; overflow-y: auto; }
+  #card-uninstall { grid-area: uninstall; overflow-y: auto; }
+  #card-diagnostics { grid-area: diag; overflow-y: auto; }
+  #card-yours { grid-area: yours; overflow-y: auto; min-height: 0; }
+  .card-status { grid-area: status; grid-column: auto; display: flex; flex-direction: column; min-height: 0; }
+  .card-status .status-text { flex: 1; max-height: none; min-height: 0; }
+  #resolution-list, #install-apps, #uninstall-apps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+}
+
+/* ---- form controls ---- */
+.field-grid {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 8px 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.field-grid label { color: var(--text-muted); font-size: 12px; }
+input[type="text"], input[type="password"], input[type="number"], select {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  font-size: 12.5px;
+  font-family: var(--font);
+}
+input:focus, select:focus { outline: none; border-color: var(--input-border-focus); }
+input[readonly] { color: var(--text-muted); }
+
+.subgroup {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: var(--bg-elevated);
+}
+.subgroup-title { font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .03em; }
+.radio-list, .check-list { display: flex; flex-direction: column; gap: 6px; }
+.radio, .check {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; user-select: none;
+}
+.radio input, .check input { accent-color: var(--accent); width: 14px; height: 14px; }
+
+.panel {
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.fingerprint-row { display: flex; gap: 8px; margin-top: 6px; }
+.fingerprint-row input { flex: 1; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.btn {
+  background: var(--hover);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .1s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn-primary { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+.btn-danger { background: var(--danger); color: var(--danger-text); border-color: transparent; }
+.btn-accent { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+#card-uninstall .btn, #card-diagnostics .btn { margin-bottom: 10px; width: 100%; }
+
+/* ---- status ---- */
+.status-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: Consolas, "Segoe UI", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 220px;
+  overflow-y: auto;
+  color: var(--text-muted);
+}
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--card-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- modal ---- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 18px 20px; max-width: 420px;
+}
+.modal h3 { margin: 0 0 8px; font-size: 14px; }
+.modal p { margin: 0 0 14px; font-size: 12.5px; color: var(--text-muted); line-height: 1.5; white-space: pre-wrap; }
+.modal-actions { justify-content: flex-end; }
+
+/* ---- scrollbars (Chromium/WebView2) ---- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }

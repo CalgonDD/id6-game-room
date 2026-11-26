@@ -1,0 +1,36 @@
+# Build outputs
+source/native/out/
+source/native/build/
+dist/
+games_installer/dist/
+__pycache__/
+*.pyc
+
+# BMW's own libraries, copied from your car to build: never commit them
+source/native/frameworks/
+source/native/runtime/
+
+# Fetched by third_party/fetch_third_party.sh
+third_party/doomgeneric/
+third_party/opentyrian/
+third_party/quakegeneric/
+third_party/fceumm/
+third_party/gambatte/
+third_party/pcsx_rearmed/
+third_party/chocolate-doom/
+third_party/id-quake/
+third_party/ppsspp/
+third_party/freedoom/
+third_party/librequake/
+third_party/tyrian21/
+
+# Staged by games_installer/tools/stage_payload.py
+games_installer/payload/
+
+# Never commit game BIOS files or commercial games
+*.iso
+*.cso
+*.pbp
+*.chd
+*.cue
+scph*.bin

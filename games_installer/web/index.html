@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ID6 Game Room Installer</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-theme="dark">
+<div id="menubar" class="menubar">
+  <div class="brand">
+    <span class="brand-title">ID6 Game Room Installer</span>
+    <span class="brand-sub" data-i18n="subtitle"></span>
+  </div>
+  <div class="menu" id="menu-file">
+    <button class="menu-btn" data-i18n="menuFile"></button>
+    <div class="menu-drop">
+      <button class="menu-item" id="action-quit" data-i18n="menuExit"></button>
+    </div>
+  </div>
+  <div class="menu" id="menu-view">
+    <button class="menu-btn" data-i18n="menuView"></button>
+    <div class="menu-drop">
+      <div class="menu-group" data-i18n="menuTheme"></div>
+      <button class="menu-item" data-theme-choice="light"><span class="dot"></span><span data-i18n="themeLight"></span></button>
+      <button class="menu-item" data-theme-choice="dark"><span class="dot"></span><span data-i18n="themeDark"></span></button>
+      <div class="menu-sep"></div>
+      <div class="menu-group" data-i18n="menuLanguage"></div>
+      <div id="language-list"></div>
+    </div>
+  </div>
+</div>
+
+<main class="layout">
+
+  <div class="col-stack">
+  <section class="card" id="card-connect">
+    <h2><span class="step">1</span><span data-i18n="sectionConnect"></span></h2>
+    <p class="hint" data-i18n="connectHint"></p>
+    <button class="btn" id="action-find" data-i18n="findCar"></button>
+    <div class="field-grid">
+      <label data-i18n="labelGateway"></label>
+      <select id="field-detected"></select>
+      <label data-i18n="labelHeadIp"></label>
+      <input type="text" id="field-head" autocomplete="off" spellcheck="false">
+      <label data-i18n="labelGatewayIp"></label>
+      <input type="text" id="field-gateway" autocomplete="off" spellcheck="false">
+    </div>
+  </section>
+
+  <section class="card" id="card-yours">
+    <h2><span class="step">5</span><span data-i18n="sectionYours"></span></h2>
+    <p class="hint" data-i18n="yoursHint"></p>
+    <div class="btn-row">
+      <button class="btn" id="action-choose-files" data-i18n="chooseFiles"></button>
+      <button class="btn" id="action-choose-folder" data-i18n="chooseFolder"></button>
+    </div>
+    <div class="subgroup" id="yours-checked-group" hidden>
+      <div class="subgroup-title" data-i18n="yoursChecked"></div>
+      <div class="check-list own-list" id="yours-checked"></div>
+      <p class="hint" id="yours-skipped" hidden></p>
+      <button class="btn btn-primary" id="action-add-games" data-i18n="addGames"></button>
+    </div>
+    <div class="subgroup">
+      <div class="subgroup-title" data-i18n="carGamesTitle"></div>
+      <div class="check-list own-list" id="car-games"></div>
+      <div class="btn-row">
+        <button class="btn" id="action-list-games" data-i18n="listGames"></button>
+        <button class="btn btn-danger" id="action-remove-games" data-i18n="removeGames"></button>
+      </div>
+      <p class="hint" data-i18n="statesHint"></p>
+      <button class="btn" id="action-delete-states" data-i18n="deleteStates"></button>
+    </div>
+  </section>
+  </div>
+
+  <section class="card" id="card-install">
+    <h2><span class="step">2</span><span data-i18n="sectionInstall"></span></h2>
+    <div class="field-grid">
+      <label data-i18n="labelPassword"></label>
+      <input type="password" id="field-password" autocomplete="off">
+      <label data-i18n="labelVersion"></label>
+      <input type="text" id="field-version" autocomplete="off" spellcheck="false">
+    </div>
+    <label class="check" id="check-remember" title="">
+      <input type="checkbox" id="field-remember">
+      <span data-i18n="rememberLabel"></span>
+    </label>
+
+    <div class="subgroup">
+      <div class="subgroup-title" data-i18n="resolutionTitle"></div>
+      <div class="radio-list" id="resolution-list">
+        <label class="radio"><input type="radio" name="res" value=""><span data-i18n="resAuto"></span></label>
+        <label class="radio"><input type="radio" name="res" value="800x480"><span data-i18n="res800"></span></label>
+        <label class="radio"><input type="radio" name="res" value="1280x480"><span data-i18n="res1280"></span></label>
+        <label class="radio"><input type="radio" name="res" value="1440x540"><span data-i18n="res1440"></span></label>
+        <label class="radio"><input type="radio" name="res" value="1920x720"><span data-i18n="res1920"></span></label>
+        <label class="radio"><input type="radio" name="res" value="custom"><span data-i18n="resCustom"></span></label>
+      </div>
+      <div class="field-grid" id="custom-size" hidden>
+        <label data-i18n="labelWidth"></label>
+        <input type="number" id="field-width" min="800" max="1920" step="1">
+        <label data-i18n="labelHeight"></label>
+        <input type="number" id="field-height" min="480" max="720" step="1">
+      </div>
+    </div>
+
+    <div class="subgroup">
+      <div class="subgroup-title" data-i18n="appsToInstall"></div>
+      <div class="check-list" id="install-apps"></div>
+    </div>
+
+    <div class="panel" id="panel-fingerprint" hidden>
+      <label data-i18n="labelFingerprint"></label>
+      <div class="fingerprint-row">
+        <input type="text" id="field-fingerprint" readonly>
+        <button class="btn btn-accent" id="action-trust" data-i18n="trustBtn"></button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-recover" hidden>
+      <p class="hint" data-i18n="recoverHint"></p>
+      <button class="btn" id="action-recover" data-i18n="recoverBtn"></button>
+      <button class="btn" id="action-unlock-empty" data-i18n="unlockEmptyBtn" hidden></button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="action-connect" data-i18n="connectBtn"></button>
+      <button class="btn" id="action-inspect" data-i18n="checkBtn"></button>
+      <button class="btn btn-primary" id="action-install" data-i18n="installBtn"></button>
+    </div>
+  </section>
+
+  <div class="col-stack">
+    <section class="card" id="card-uninstall">
+      <h2><span class="step">3</span><span data-i18n="sectionUninstall"></span></h2>
+      <p class="hint" data-i18n="uninstallHint"></p>
+      <button class="btn btn-danger" id="action-uninstall-all" data-i18n="uninstallAll"></button>
+      <div class="subgroup">
+        <div class="subgroup-title" data-i18n="appsToUninstall"></div>
+        <div class="check-list" id="uninstall-apps"></div>
+      </div>
+      <button class="btn" id="action-uninstall-selected" data-i18n="uninstallSelected"></button>
+      <p class="hint" data-i18n="backupsHint"></p>
+      <button class="btn" id="action-delete-backups" data-i18n="deleteBackups"></button>
+    </section>
+
+    <section class="card" id="card-diagnostics">
+      <h2><span class="step">4</span><span data-i18n="sectionDiagnostics"></span></h2>
+      <p class="hint" data-i18n="diagnosticsHint"></p>
+      <div class="check-list" id="diag-sections"></div>
+      <label class="check"><input type="checkbox" id="field-dump" checked><span data-i18n="diagDump"></span></label>
+      <button class="btn" id="action-diagnostics" data-i18n="pullDiagnostics"></button>
+    </section>
+  </div>
+
+  <section class="card card-status" id="card-status">
+    <h2 data-i18n="sectionStatus"></h2>
+    <div class="spinner" id="spinner" hidden></div>
+    <pre id="status-text" class="status-text"></pre>
+  </section>
+
+</main>
+
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="btn-row modal-actions">
+      <button class="btn" id="modal-cancel" data-i18n="modalCancel"></button>
+      <button class="btn btn-danger" id="modal-confirm" data-i18n="modalConfirm"></button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin>
+  <name>GameRoom</name>
+  <type>App</type>
+  <file>{pluginDir}/GameRoom</file>
+  <config>
+    <autoStart>yes</autoStart>
+    <dependencies>
+      <pluginAppConnector>
+        <type>Etch</type>
+        <id>220</id>
+        <asyncCallbacks>yes</asyncCallbacks>
+      </pluginAppConnector>
+    </dependencies>
+    <parameters>
+      <DescFile>{pluginDir}/GameRoom.xml</DescFile>
+      <ImageDBFile>{pluginDir}/GameRoom_ALL_Images.zip</ImageDBFile>
+      <TextDBFile>{pluginDir}/GameRoom_ALL_Texts.zip</TextDBFile>
+    </parameters>
+  </config>
+</plugin>

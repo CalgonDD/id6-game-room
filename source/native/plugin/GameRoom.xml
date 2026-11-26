@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pluginApps>
+  <pluginApp applicationType="VehicleInformation" applicationWeight="220" text="Game Room">
+    <entryButton id="1" action="10" previewModel="120">
+      <properties>
+        <property id="23" value="2" />
+      </properties>
+    </entryButton>
+    <actions>
+      <hmiAction id="10" target="100" />
+      <raAction id="30" />
+      <raAction id="31" />
+    </actions>
+    <models>
+      <raPreviewModel id="120" modelType="StatePreview" previewState="106" />
+      <imageIdModel id="121" imageId="57801" />
+    </models>
+    <hmiStates>
+      <hmiState id="100" text="Game Room">
+        <components>
+          <button id="220" action="30" text="Play (choose a game; wired Xbox pad in the USB port)" />
+          <button id="221" action="31" text="Continue last save" />
+          <label id="200" text="Freedoom, Tyrian, Quake, NES, Game Boy and PlayStation. Pick a game with the d-pad and A; B leaves the list." />
+          <label id="201" text="PC games: left stick moves, RT fires, Menu opens the game's menu (save, load, quit). Questions: A yes, B no." />
+          <label id="202" text="Consoles: A / B / X / Y are the console's buttons, Menu Start, View Select. Xbox button: save state, load, other game." />
+          <label id="203" text="BACK on the iDrive controller ends the game." />
+        </components>
+      </hmiState>
+      <hmiState id="106" text="Game Room">
+        <components>
+          <image id="260" model="121">
+            <properties>
+              <property id="3" value="true" />
+              <property id="9" value="549" />
+              <property id="10" value="484" />
+              <property id="20" value="0" />
+              <property id="21" value="0" />
+            </properties>
+          </image>
+        </components>
+      </hmiState>
+    </hmiStates>
+  </pluginApp>
+</pluginApps>
