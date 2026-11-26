@@ -2,13 +2,13 @@
 
 ## 1. Check the download is the published one
 
-The release installer is `ID6-Game-Room-Installer-v33.2-Windows-x64.exe`. Its SHA-256 is:
+The release installer is `ID6-Game-Room-Installer-v34-Windows-x64.exe`. Its SHA-256 is:
 
 ```
-0244e8984a8e8d90a961dd25a8002e66fc3e6a838b3481ca27036e7111d50e0c
+a02129f32e388d91740f8301e402ad926579d47df3c36d493ec3f1f71eb2191e
 ```
 
-In PowerShell, `Get-FileHash .\ID6-Game-Room-Installer-v33.2-Windows-x64.exe` must print that value (in capitals). Some chat apps flag or rewrite `.exe` files, so download it from GitHub directly.
+In PowerShell, `Get-FileHash .\ID6-Game-Room-Installer-v34-Windows-x64.exe` must print that value (in capitals). Some chat apps flag or rewrite `.exe` files, so download it from GitHub directly.
 
 ## 2. Rebuild the installer and compare
 
@@ -21,11 +21,13 @@ The Windows installer is a plain Go program. Rebuilding it from this repository 
 3. In `games_installer/`, run:
 
    ```sh
-   GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -mod=vendor -trimpath \
-     "-ldflags=-s -w -H windowsgui -X 'main.buildLabel=Game Room v33.2'" -o rebuilt.exe .
+   GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -mod=vendor -trimpath -buildvcs=false \
+     "-ldflags=-s -w -H windowsgui -X 'main.buildLabel=Game Room v34'" -o rebuilt.exe .
    ```
 
-4. `sha256sum rebuilt.exe` gives `0244e898…0e0c`, the same as the release. This was checked before publishing.
+4. `sha256sum rebuilt.exe` gives `a02129f3…191e`, the same as the release. This was checked before publishing, both from a git clone of this repository and from the release's source archive.
+
+   `-buildvcs=false` stops Go from writing the git commit into the `.exe`. The repository's `.gitattributes` keeps git from changing line endings when you clone it (Git for Windows does that by default), so the sources match byte for byte.
 
 ## 3. Rebuild the head-unit files and compare
 

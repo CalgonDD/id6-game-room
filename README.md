@@ -20,13 +20,13 @@ Everything runs on the head unit itself (QNX 6.5, ARM Cortex-A15, PowerVR SGX544
 
 ## Download and check it
 
-Get `ID6-Game-Room-Installer-v33.2-Windows-x64.exe` from the [Releases](../../releases) page. Before running it, check it is the file built from this source. In PowerShell:
+Get `ID6-Game-Room-Installer-v34-Windows-x64.exe` from the [Releases](../../releases) page. Before running it, check it is the file built from this source. In PowerShell:
 
 ```powershell
-Get-FileHash .\ID6-Game-Room-Installer-v33.2-Windows-x64.exe -Algorithm SHA256
+Get-FileHash .\ID6-Game-Room-Installer-v34-Windows-x64.exe -Algorithm SHA256
 ```
 
-The result must be `0244E8984A8E8D90A961DD25A8002E66FC3E6A838B3481CA27036E7111D50E0C`. If it is not, don't run it.
+The result must be `A02129F32E388D91740F8301E402AD926579D47DF3C36D493EC3F1F71EB2191E`. If it is not, don't run it.
 
 You don't have to take that on trust: [docs/SAFETY.md](docs/SAFETY.md) explains how to rebuild the installer from this repository and get the same file, and what it does to your car.
 

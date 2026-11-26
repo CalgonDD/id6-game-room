@@ -17,12 +17,12 @@ def main():
     os.environ.update(GOOS="windows", GOARCH="amd64", CGO_ENABLED="0")
     dest = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "dist"
     dest.mkdir(parents=True, exist_ok=True)
-    # ID6_INSTALLER_NAME and ID6_BUILD_LABEL name the build (e.g. "Game Room v33.2").
+    # ID6_INSTALLER_NAME and ID6_BUILD_LABEL name the build (e.g. "Game Room v34").
     name = os.environ.get("ID6_INSTALLER_NAME", "ID6 Game Room Installer")
     label = os.environ.get("ID6_BUILD_LABEL", "")
     ldflags = "-s -w -H windowsgui" + (f" -X 'main.buildLabel={label}'" if label else "")
     binary = dest / f"{name}.exe"
-    subprocess.run(["go", "build", "-mod=vendor", "-trimpath", "-ldflags=" + ldflags, "-o", str(binary), "."], check=True)
+    subprocess.run(["go", "build", "-mod=vendor", "-trimpath", "-buildvcs=false", "-ldflags=" + ldflags, "-o", str(binary), "."], check=True)
     archive = dest / (name.replace(" - ", "-").replace(" ", "-") + "-Windows-x64.zip" if label else "ID6-Game-Room-Installer-Windows-x64.zip")
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as z:
         z.write(binary, binary.name)

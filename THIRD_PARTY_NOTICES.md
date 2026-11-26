@@ -7,7 +7,7 @@ The complete corresponding source for every binary in the installer is:
 - the upstream projects at the commits below, fetched by [`third_party/fetch_third_party.sh`](third_party/fetch_third_party.sh);
 - our PPSSPP patch, [`third_party/patches/ppsspp-1.17.1-qnx.diff`](third_party/patches/ppsspp-1.17.1-qnx.diff).
 
-A single archive of all of it, `GameRoom-v33.2-complete-source.tar.xz`, is attached to each release.
+A single archive of all of it, `GameRoom-v34-complete-source.tar.xz`, is attached to each release.
 
 ## Engines and emulators (compiled into the head-unit programs)
 

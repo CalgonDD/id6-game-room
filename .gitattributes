@@ -1,0 +1,3 @@
+# Keep every file exactly as committed (no line-ending changes on checkout), so a clone builds
+# the same installer as the release. See docs/SAFETY.md.
+* -text

@@ -72,12 +72,12 @@ cd games_installer
 python tools/stage_payload.py          # copies parts 1 and 2 and the game data into payload/, and checks them
 python tools/stage_payload.py --check
 go test ./...
-ID6_BUILD_LABEL="Game Room v33.2" python tools/build_release.py ../dist
+ID6_BUILD_LABEL="Game Room v34" python tools/build_release.py ../dist
 ```
 
 Expected test result: everything passes except the two symlink tests, which can't create symlinks on Windows without Developer Mode.
 
-`build_release.py` builds with `-trimpath -ldflags="-s -w -H windowsgui"`. The release used the label `Game Room v33.2` and Go 1.27.4. With the same payload files, the `.exe` matches the release byte for byte (see [SAFETY.md](SAFETY.md)).
+`build_release.py` builds with `-trimpath -buildvcs=false -ldflags="-s -w -H windowsgui"`. The release used the label `Game Room v34` and Go 1.27.4. With the same payload files, the `.exe` matches the release byte for byte (see [SAFETY.md](SAFETY.md)).
 
 ## Layout
 
